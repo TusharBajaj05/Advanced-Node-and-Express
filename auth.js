@@ -1,3 +1,4 @@
+require('dotenv').config();
 let GitHubStrategy = require('passport-github').Strategy
 
 module.exports = (app, myDataBase, session, passport, ObjectId, LocalStrategy, bcrypt) => {
@@ -53,7 +54,8 @@ module.exports = (app, myDataBase, session, passport, ObjectId, LocalStrategy, b
                 },
                 { upsert: true, new: true },
                 (err, doc) => {
-                    return cb(null, doc.value);
+                    if(!err && doc)
+                        return cb(null, doc.value);
                 }
             )
         }

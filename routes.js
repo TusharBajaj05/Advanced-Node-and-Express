@@ -1,8 +1,8 @@
 module.exports = (app, myDataBase, passport, bcrypt) => {
-    const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log('Listening on port ' + PORT);
-  });
+//     const PORT = process.env.PORT || 3000;
+//   app.listen(PORT, () => {
+//     console.log('Listening on port ' + PORT);
+//   });
 
   app.route('/').get((req, res) => {
     res.render('index', {title: 'Connected to Database', message: 'Please login', showLogin: true, showRegistration: true, showSocialAuth: true})
@@ -19,8 +19,23 @@ module.exports = (app, myDataBase, passport, bcrypt) => {
     res.redirect('/');
   };
 
-  app.get('/profile', ensureAuthenticated, (req, res) => {
-    res.render('profile', {username: req.user.username})
+  app.get('/auth/github', passport.authenticate('github'))
+
+//   app.route('/auth/github/callback').get(passport.authenticate("github", {failureRedirect: '/'}), (req, res) => {
+//     res.redirect('/profile')
+//   })
+
+  app.route('/auth/github/callback').get(passport.authenticate("github", {failureRedirect: '/'}), (req, res) => {
+    req.session.user_id = req.user.id
+    res.redirect('/chat')
+  })
+
+  app.route('/profile').get(ensureAuthenticated, (req, res) => {
+    res.render(process.cwd() + '/views/pug/profile', {username: req.user.username})
+  })
+
+  app.route('/chat').get(ensureAuthenticated, (req, res) => {
+    res.render(process.cwd() + '/views/pug/chat', {user: req.user})
   })
 
   app.get('/logout', (req, res) => {
@@ -45,12 +60,6 @@ module.exports = (app, myDataBase, passport, bcrypt) => {
         }
       })
   }, passport.authenticate('/local', { failureRedirect: '/'}), (req, res) => {
-    res.redirect('/profile')
-  })
-
-  app.get('/auth/github', passport.authenticate('github'))
-
-  app.get('/auth/github/callback', passport.authenticate('github', {failureRedirect: '/'}), (req, res) => {
     res.redirect('/profile')
   })
 
